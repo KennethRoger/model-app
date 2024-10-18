@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUserDetails,
@@ -17,16 +17,21 @@ const ProfilePage = () => {
   const loading = useSelector(selectLoading);
   const error = useSelector(selectError);
 
+  const [image, setImage] = useState(boyImg);
+
   const { register, handleSubmit, setValue } = useForm();
 
-  useEffect(() => {
-    dispatch(fetchUserDetails());
-  }, [dispatch]);
+  //  I have commented this out because I already have a parent which is header calling this useEffect so I thought the child which is ProfilePage would'nt need to call this again
+  // useEffect(() => {
+  //   dispatch(fetchUserDetails());
+  // }, [dispatch]);
 
   useEffect(() => {
     if (user) {
       setValue("username", user.username);
       setValue("email", user.email);
+      setImage(user.profileImage);
+      console.log(user.profileImage)
     }
   }, [user, setValue]);
 
@@ -35,6 +40,16 @@ const ProfilePage = () => {
       await axios.put("http://localhost:3000/api/users/me", data, {
         withCredentials: true,
       });
+      // this is not working properly. Always getting Error updating profile
+      if (image) {
+        console.log(image);
+        await axios.post("http://localhost:3000/api/users/upload", image, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        });
+      }
       dispatch(fetchUserDetails());
     } catch (err) {
       console.error("Error updating profile:", err);
@@ -45,10 +60,10 @@ const ProfilePage = () => {
     const file = e.target.files[0];
     const formData = new FormData();
     formData.append("profileImage", file);
-    await axios.post("http://localhost:3000/api/users/upload", formData, {
-      withCredentials: true,
-    });
-    dispatch(fetchUserDetails());
+    setImage(formData);
+    console.log(formData);
+
+    // dispatch(fetchUserDetails());
   };
 
   if (loading) return <div>Loading...</div>;
@@ -64,11 +79,7 @@ const ProfilePage = () => {
         >
           <div className="relative group">
             <img
-              src={
-                user.profileImage
-                  ? `http://localhost:3000${user.profileImage}`
-                  : boyImg
-              }
+              src={user ? `http://localhost:3000${image}` : image}
               alt="ProfilePic"
               className="h-40 w-40 rounded-full border-4 border-gray-200 object-cover"
             />

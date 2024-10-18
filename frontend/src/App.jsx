@@ -12,7 +12,7 @@ import HeaderPage from "./pages/HeaderPage";
 
 function App() {
   return (
-    <>
+    
       <Routes>
         <Route
           path="/auth/login"
@@ -53,7 +53,7 @@ function App() {
           element={<h1>Thyis pyage yis nyot avyailable nya~</h1>}
         />
       </Routes>
-    </>
+    
   );
 }
 
