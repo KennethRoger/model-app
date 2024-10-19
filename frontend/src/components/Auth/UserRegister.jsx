@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { useState } from "react";
 
 function UserRegister() {
   const navigate = useNavigate();
@@ -9,17 +10,18 @@ function UserRegister() {
     handleSubmit,
     formState: { errors },
   } = useForm({ mode: "onChange" });
+  const [errorMsg, setErrorMsg] = useState("");
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post(
+      await axios.post(
         "http://localhost:3000/api/users/register",
         data
       );
-      // dispatch(setUserInfo(response.data.user));
       navigate("/auth/login");
     } catch (err) {
       console.error("Error registering user:", err.response.data);
+      setErrorMsg(err.response.data.message)
     }
   };
 
@@ -86,6 +88,7 @@ function UserRegister() {
           <p className="text-red-500">{errors.password?.message}</p>
         </div>
       </div>
+      <p className="text-red-500 text-center">{errorMsg}</p>
       <button
         type="submit"
         className="w-full py-2 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-700 transition duration-300"

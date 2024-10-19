@@ -10,6 +10,7 @@ import boyImg from "../../assets/boy.png";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { FaCameraRetro } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
   const dispatch = useDispatch();
@@ -17,21 +18,27 @@ const ProfilePage = () => {
   const loading = useSelector(selectLoading);
   const error = useSelector(selectError);
 
-  const [image, setImage] = useState(boyImg);
+  const [image, setImage] = useState("");
+  const [preview, setPreview] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const { register, handleSubmit, setValue } = useForm();
+  const navigate = useNavigate()
 
-  //  I have commented this out because I already have a parent which is header calling this useEffect so I thought the child which is ProfilePage would'nt need to call this again
-  // useEffect(() => {
-  //   dispatch(fetchUserDetails());
-  // }, [dispatch]);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm();
 
   useEffect(() => {
     if (user) {
       setValue("username", user.username);
       setValue("email", user.email);
-      setImage(user.profileImage);
-      console.log(user.profileImage)
+      if (user.profileImage) {
+        setImage(user.profileImage);
+        setPreview(`http://localhost:3000${user.profileImage}`);
+      }
     }
   }, [user, setValue]);
 
@@ -40,9 +47,7 @@ const ProfilePage = () => {
       await axios.put("http://localhost:3000/api/users/me", data, {
         withCredentials: true,
       });
-      // this is not working properly. Always getting Error updating profile
-      if (image) {
-        console.log(image);
+      if (image != user.profileImage) {
         await axios.post("http://localhost:3000/api/users/upload", image, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -51,19 +56,23 @@ const ProfilePage = () => {
         });
       }
       dispatch(fetchUserDetails());
+      navigate("/");
     } catch (err) {
-      console.error("Error updating profile:", err);
+      console.error("Error updating profile:", err.response);
+      setErrorMsg(err.response.data.message);
     }
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append("profileImage", file);
-    setImage(formData);
-    console.log(formData);
-
-    // dispatch(fetchUserDetails());
+    if (file) {
+      const formData = new FormData();
+      formData.append("profileImage", file);
+      console.log(formData);
+      setImage(formData);
+      setPreview(URL.createObjectURL(file));
+      console.log(URL.createObjectURL(file));
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -75,11 +84,11 @@ const ProfilePage = () => {
       {user && (
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="border-2 border-gray-300 rounded-lg shadow-md flex flex-col justify-center items-center gap-5 p-8 bg-white max-w-md mx-auto"
+          className="border-2 border-gray-300 rounded-lg shadow-md flex flex-col justify-center items-center gap-5 p-8 bg-white max-w-md mx-auto" 
         >
           <div className="relative group">
             <img
-              src={user ? `http://localhost:3000${image}` : image}
+              src={preview || boyImg}
               alt="ProfilePic"
               className="h-40 w-40 rounded-full border-4 border-gray-200 object-cover"
             />
@@ -95,9 +104,16 @@ const ProfilePage = () => {
               Username:
             </label>
             <input
-              {...register("username")}
+              {...register("username", {
+                pattern: {
+                  value: /^[A-Za-z][A-Za-z0-9]{3,11}/,
+                  message:
+                    "Username must start with a letter, be 5-12 characters long, and contain no spaces",
+                },
+              })}
               className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <p className="text-red-500">{errors.username?.message}</p>
           </div>
           <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -105,12 +121,15 @@ const ProfilePage = () => {
             </label>
             <input
               type="email"
-              {...register("email")}
+              {...register("email", {
+                pattern: { value: /^\S+@\S+$/i, message: "Email is not valid" },
+              })}
               className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <p className="text-red-500">{errors.email?.message}</p>
           </div>
           <div className="w-full">
-            <p className="text-xs text-gray-500 mb-1">
+            <p className="text-blue-400 text-lg mb-1 font-bold">
               Enter your password to update
             </p>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -118,10 +137,14 @@ const ProfilePage = () => {
             </label>
             <input
               type="password"
-              {...register("password")}
+              {...register("password", {
+                required: "Password is required",
+              })}
               className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <p className="text-red-500">{errors.password?.message}</p>
           </div>
+          <p className="text-red-500">{errorMsg}</p>
           <button
             type="submit"
             className="bg-blue-500 text-white py-2 px-6 rounded-md hover:bg-blue-600 transition-colors duration-300"

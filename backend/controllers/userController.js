@@ -1,6 +1,8 @@
 const User = require("../models/User");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const path = require("path");
 
 const registerUser = async (req, res) => {
   const { username, email, password } = req.body;
@@ -50,7 +52,7 @@ const loginUser = async (req, res) => {
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "30min",
+      expiresIn: "1hr",
     });
 
     const cookieOptions = {
@@ -83,7 +85,7 @@ const uploadProfileImage = async (req, res) => {
       .json({ message: "Profile image uploaded successfully", imageUrl });
     console.log("success");
   } catch (err) {
-    console.error(err);
+    console.error("Image uploading error", err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -101,11 +103,22 @@ const updateUser = async (req, res) => {
       return res.status(400).json({ message: "Password doesn't match" });
     }
 
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername && existingUsername._id.toString() !== userId) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail && existingEmail._id.toString() !== userId) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
     const response = await User.findByIdAndUpdate(
       userId,
       { username, email },
       { new: true }
     );
+
     if (!response) {
       return res
         .status(500)
@@ -125,6 +138,10 @@ const getUserDetails = async (req, res) => {
     const user = await User.findById(decoded.user.id).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+    const imagePath = path.join(__dirname, "..", user.profileImage);
+    if (!fs.existsSync(imagePath)) {
+      user.profileImage = null;
     }
     res.status(200).json(user);
   } catch (err) {
