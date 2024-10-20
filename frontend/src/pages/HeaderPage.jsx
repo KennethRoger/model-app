@@ -9,6 +9,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import boyImg from "../assets/boy.png";
 import { useEffect } from "react";
+import Loading from "./Loading";
 
 function HeaderPage() {
   const user = useSelector(selectUser);
@@ -28,7 +29,8 @@ function HeaderPage() {
         {},
         { withCredentials: true }
       )
-      .then(() => {
+      .then((response) => {
+        console.log(response.data)
         navigate("/auth/login");
       })
       .catch((err) => {
@@ -37,7 +39,7 @@ function HeaderPage() {
       });
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loading />;
   if (error) return <div>Error: {error}</div>;
 
   return (
@@ -54,7 +56,9 @@ function HeaderPage() {
           <Link to={"/profile"} className="relative">
             <img
               src={
-                user && user.profileImage ? `http://localhost:3000${user.profileImage}` : boyImg
+                user && user.profileImage
+                  ? `http://localhost:3000${user.profileImage}`
+                  : boyImg
               }
               alt="Profile"
               className="w-10 h-10 rounded-full border-2 border-white"

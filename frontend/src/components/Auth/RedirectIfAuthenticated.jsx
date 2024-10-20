@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Loading from "../../pages/Loading";
 
 function RedirectIfAuthenticated({ children }) {
   const [loading, setLoading] = useState(true);
@@ -34,7 +35,7 @@ function RedirectIfAuthenticated({ children }) {
   }, [navigate]);
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <Loading />;
   }
 
   return !isAuthenticated ? children : null;

@@ -1,9 +1,9 @@
-import axios from "axios";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import axios from "axios"
 import Loading from "../../pages/Loading";
 
-function ProtectedRoute({ children }) {
+function RedirectIfAdminAuthenticated({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
@@ -12,19 +12,20 @@ function ProtectedRoute({ children }) {
     const checkAuthStatus = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/users/verify",
+          "http://localhost:3000/api/admin/verify",
           {
             withCredentials: true,
           }
         );
+
         if (response.data.authenticated) {
           setIsAuthenticated(true);
+          navigate("/admin/dashboard");
         } else {
-          navigate("/auth/login");
+          setIsAuthenticated(false);
         }
       } catch (err) {
-        console.error("Authentication check failed:", err);
-        navigate("/auth/login");
+        setIsAuthenticated(false);
       } finally {
         setLoading(false);
       }
@@ -37,7 +38,7 @@ function ProtectedRoute({ children }) {
     return <Loading />;
   }
 
-  return isAuthenticated ? children : null;
+  return !isAuthenticated ? children : null;
 }
 
-export default ProtectedRoute;
+export default RedirectIfAdminAuthenticated;

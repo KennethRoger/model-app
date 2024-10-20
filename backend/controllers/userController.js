@@ -65,7 +65,7 @@ const loginUser = async (req, res) => {
 
     res.status(200).json({ message: "Login successful" });
   } catch (err) {
-    console.error(err);
+    console.error("login error", err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -124,6 +124,7 @@ const updateUser = async (req, res) => {
         .status(500)
         .json({ message: "Server error. User update failed" });
     }
+    
     return res.status(200).json({ message: "User updated successfully" });
   } catch (err) {
     console.error("Update error:", err);
@@ -133,19 +134,31 @@ const updateUser = async (req, res) => {
 
 const getUserDetails = async (req, res) => {
   try {
-    const userToken = req.cookies.token;
+    const userToken = req.cookies.token; // Ensure the token exists
+    if (!userToken) {
+      return res.status(401).json({ message: "Unauthorized: No token provided" });
+    }
+
     const decoded = jwt.verify(userToken, process.env.JWT_SECRET);
     const user = await User.findById(decoded.user.id).select("-password");
+    
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const imagePath = path.join(__dirname, "..", user.profileImage);
-    if (!fs.existsSync(imagePath)) {
+
+    if (user.profileImage) {
+      const imagePath = path.join(__dirname, "..", user.profileImage);
+      
+      if (!fs.existsSync(imagePath)) {
+        user.profileImage = null;
+      }
+    } else {
       user.profileImage = null;
     }
+
     res.status(200).json(user);
   } catch (err) {
-    console.error(err);
+    console.error("User data could not be fetched:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

@@ -1,15 +1,34 @@
 // AdminLogin.jsx
 import { useForm } from "react-hook-form";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
-function AdminLogin() {
+function AdminLogin({adminNameProvider}) {
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const navigate = useNavigate();
+  const [error, setError] = useState(null)
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = async (data) => {
+    await axios
+      .post("http://localhost:3000/api/admin/login", data, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        console.log(response)
+        if (response.status === 200) {
+          adminNameProvider(response.data.adminName)
+          navigate("/admin/dashboard");
+        }
+      })
+      .catch((error) => {
+        setError(error.response.data.message)
+        console.log("An error occured:", error.response.data);
+      });
   };
 
   return (
@@ -28,13 +47,13 @@ function AdminLogin() {
             </label>
             <input
               type="text"
-              {...register("adminName", {
+              {...register("name", {
                 required: "Admin name is required",
               })}
               className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter admin name"
             />
-            <p className="text-red-500">{errors.adminName?.message}</p>
+            <p className="text-red-500">{errors.name?.message}</p>
           </div>
           <div>
             <label className="block mb-1 font-medium text-gray-700">
@@ -42,13 +61,13 @@ function AdminLogin() {
             </label>
             <input
               type="text"
-              {...register("adminId", {
+              {...register("adminID", {
                 required: "Admin ID is required",
               })}
               className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter admin ID"
             />
-            <p className="text-red-500">{errors.adminId?.message}</p>
+            <p className="text-red-500">{errors.adminID?.message}</p>
           </div>
           <div>
             <label className="block mb-1 font-medium text-gray-700">
@@ -65,6 +84,7 @@ function AdminLogin() {
             <p className="text-red-500">{errors.password?.message}</p>
           </div>
         </div>
+        <p className="text-red-500 text-center">{error}</p>
         <button
           type="submit"
           className="w-full py-2 bg-gradient-to-l from-gray-700 via-gray-900 to-black text-white font-bold rounded-md transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:from-black hover:via-black hover:to-gray-800 hover:scale-105 hover:shadow-lg"

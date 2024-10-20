@@ -11,6 +11,8 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { FaCameraRetro } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import Loading from "../../pages/Loading";
+import ErrorPage from "../../Error";
 
 const ProfilePage = () => {
   const dispatch = useDispatch();
@@ -75,8 +77,8 @@ const ProfilePage = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) return <Loading />;
+  if (error) return <ErrorPage />;
 
   return (
     <div className="profile-container flex flex-col justify-center items-center">

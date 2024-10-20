@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Loading from "../../pages/Loading";
 
-function ProtectedRoute({ children }) {
+function ProtectedAdminRoute({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ function ProtectedRoute({ children }) {
     const checkAuthStatus = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/users/verify",
+          "http://localhost:3000/api/admin/verify",
           {
             withCredentials: true,
           }
@@ -20,11 +20,11 @@ function ProtectedRoute({ children }) {
         if (response.data.authenticated) {
           setIsAuthenticated(true);
         } else {
-          navigate("/auth/login");
+          navigate("/admin/login");
         }
       } catch (err) {
         console.error("Authentication check failed:", err);
-        navigate("/auth/login");
+        navigate("/admin/login");
       } finally {
         setLoading(false);
       }
@@ -34,10 +34,10 @@ function ProtectedRoute({ children }) {
   }, [navigate]);
 
   if (loading) {
-    return <Loading />;
+    return <loading />;
   }
 
   return isAuthenticated ? children : null;
 }
 
-export default ProtectedRoute;
+export default ProtectedAdminRoute;

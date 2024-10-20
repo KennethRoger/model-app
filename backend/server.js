@@ -7,6 +7,7 @@ const path = require("path");
 
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const port = 3000;
 dotenv.config();
@@ -22,6 +23,7 @@ app.use(cookieParser());
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
 
 connectDB().then(() => {
   app.listen(port, () => {

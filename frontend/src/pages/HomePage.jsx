@@ -3,21 +3,16 @@ import {
   selectUser,
   selectLoading,
   selectError,
-  fetchUserDetails,
 } from "../redux/features/userSlice";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
+import Loading from "./Loading";
 
 function HomePage() {
   const user = useSelector(selectUser);
   const loading = useSelector(selectLoading);
   const error = useSelector(selectError);
-  // const dispatch = useDispatch();
 
   const [capitalizedName, setCapitalizedName] = useState("");
-
-  // useEffect(() => {
-  //   dispatch(fetchUserDetails());
-  // }, [dispatch]);
 
   useEffect(() => {
     if (user && user.username) {
@@ -26,7 +21,7 @@ function HomePage() {
     }
   }, [user]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loading />;
   if (error) return <div>Error: {error}</div>;
 
   return (

@@ -12,7 +12,7 @@ const upload = require("../middlewares/uploadMiddleware");
 
 const router = express.Router();
 
-// @route   POST /api/users/register
+// @route POST /api/users/register
 router.post("/register", registerUser);
 
 // @route POST /api/users/login
